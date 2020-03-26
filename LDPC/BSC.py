@@ -113,20 +113,24 @@ def pc_matrix(): #parity check matrix
 
     return H
 
-def gen_matrix(H): #generator matrix
-    A = H[:, 0:k]
-    B = H[:, k:n]
-    print(B)
-    I_k = np.eye(k)
-    G = np.hstack(I_k, np.matmul(A.T, np.linalg.inv(B.T)))
-    return G
+def encode(msg, G): #function for encoding
+  code = np.zeros((int(len(msg)*n/k)))
+  i, j = 0, 0
+  while i < len(msg):
+      code[j:j+n] = (np.matmul(G.T, msg[i:i+k]))%2
+      i += k
+      j += n
+  return code
 
 
 H = pc_matrix()
-print(H)
-print(generator(H))
-'''gen_matrix(H)
-print(np.matmul(G, H.T))'''
+G = generator(H)
+code_img = encode(img, G)
+
+
+
+
+
 
         
 
