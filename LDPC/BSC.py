@@ -1,16 +1,19 @@
 # !/usr/bin/env python3
 
-#Implementation of rate-1/4 regular LDPC code for a BSC
+#Implementation of rate-1/4 (approximately) regular LDPC code for a BSC
 
 import numpy as np 
 import matplotlib.pyplot as plt 
 import random
+from numpy.random import shuffle, randint
+from numpy.linalg import inv, det
 
 img = np.load('binary_image.npy')
 lx, ly = len(img), len(img[0])
 img = np.array(img).flatten()
 size = lx*ly
 n, k = 20, 5
+p, q = 3, 4 #weights of columns and rows respectively
 m = n-k
 
 def swap_columns(a,b,arrayIn):
@@ -38,14 +41,47 @@ def move_row_to_bottom(i,arrayIn):
     index = index + 1
   return arrayOut
 
-def generator(H):
+def generator(H, verbose=False):
   """
-  This function finds the systematic form of the generator
-  matrix H. This form is G = [I P] where I is an identity
+  If given a parity check matrix H, this function returns a
+  gaussian_elimination matrix G in the systematic form: G = [I P]
+    where:  I is an np.identity matrix, size k x k
+            P is the parity submatrix, size k x (n-k)
+  If the H matrix provided is not full rank, then dependent rows
+  will be deleted first.
+  """
+  if verbose:
+    print('received H with size: ', H.shape)
+
+  # First, put the H matrix into the form H = [I|m] where:
+  #   I is (n-k) x (n-k) np.identity matrix
+  #   m is (n-k) x k
+  # This part is just copying the algorithm from getSystematicGmatrix
+  tempArray = gaussian_elimination(H)
+
+  # Next, swap I and m columns so the matrix takes the forms [m|I].
+  n      = H.shape[1]
+  k      = n - H.shape[0]
+  I_temp = tempArray[:,0:(n-k)]
+  m      = tempArray[:,(n-k):n]
+  newH   = np.concatenate((m,I_temp),axis=1)
+
+  # Now the submatrix m is the transpose of the parity submatrix,
+  # i.e. H is in the form H = [P'|I]. So G is just [I|P]
+  k = m.shape[1]
+  G = np.concatenate((np.identity(k),m.T),axis=1)
+  if verbose:
+    print('returning G with size: ', G.shape)
+  return G
+
+def gaussian_elimination(H):
+  """
+  This function finds the systematic form of the gaussian_elimination
+  matrix H. This form is G = [I P] where I is an np.identity
   matrix and P is the parity submatrix. If the H matrix
   provided is not full rank, then dependent rows will be deleted.
   This function does not convert parity check (H) matrices to the
-  generator matrix format. Use the function generatorFromH
+  gaussian_elimination matrix format. Use the function generatorFromH
   for that purpose.
   """
   tempArray = H.copy()
@@ -87,7 +123,7 @@ def generator(H):
   G = tempArray[0:i,:]
   return G
 
-def permut_index(s): #returns an array of randomly shuffled indices
+def permut_index(s): #returns an np.array of randomly shuffled indices
     arr = list(range(s))
     res = []
     while len(arr):
@@ -97,34 +133,89 @@ def permut_index(s): #returns an array of randomly shuffled indices
     return res
 
 def pc_matrix(): #parity check matrix    
-    H = np.zeros((m, n))
-    wc, wr = 3, 4
-    l1, l2 = int(n/wr), int(m/wc) # 5, 5
+    """
+    This function constructs a LDPC parity check matrix
+    H. The algorithm follows Gallager's approach where we create
+    p submatrices and stack them together. Reference: Turbo
+    Coding for Satellite and Wireless Communications, section
+    9,3.
+    Note: the matrices computed from this algorithm will never
+    have full rank. (Reference Gallager's Dissertation.) They
+    will have rank = (number of rows - p + 1). To convert it
+    to full rank, use the function get_full_rank_H_matrix
+    """
 
-    count = 0
-    for i in range(0, l2):
-        for j in range(wr*i, wr*(i+1)):
-            H[i][j] = 1
+    p = 3  # column weight
+    q = 4  # row weight
+    # TODO: There should probably be other guidelines for n/p/q,
+    # but I have not found any specifics in the literature....
 
-    for i in range(l2, m):
-        if(i%l2 == 0):
-            index_arr = permut_index(n)
-        H[i, range(n)] = H[i%l2, index_arr]
+    # For this algorithm, n/p must be an integer, because the
+    # number of rows in each submatrix must be a whole number.
+    ratioTest = (n*1.0) / q
+    if ratioTest%1 != 0:
+      print('\nError in regular_LDPC_code_contructor: The ', end='')
+      print('ratio of inputs n/q must be a whole number.\n')
+      return
+
+    # First submatrix first:
+    m = ((n*p) / q)+(p-1)  # number of rows in H matrix
+    submatrix1 = np.zeros((int(m / p),n))
+    for row in np.arange(int(m / p)):
+      range1 = row*q
+      range2 = (row+1)*q
+      submatrix1[row,range1:range2] = 1
+      H = submatrix1
+
+    # Create the other submatrices and vertically stack them on.
+    submatrixNum = 2
+    newColumnOrder = np.arange(n)
+    while submatrixNum <= p:
+      submatrix = np.zeros((int(m / p),n))
+      shuffle(newColumnOrder)
+
+      for columnNum in np.arange(n):
+        submatrix[:,columnNum] = \
+                                 submatrix1[:,newColumnOrder[columnNum]]
+
+      H = np.vstack((H,submatrix))
+      submatrixNum = submatrixNum + 1
+
+    # Double check the row weight and column weights.
+    size = H.shape
+    rows = size[0]
+    cols = size[1]
+
+    # Check the row weights.
+    for rowNum in np.arange(rows):
+      nonzeros = np.array(H[rowNum,:].nonzero())
+      if nonzeros.shape[1] != q:
+        print('Row', rowNum, 'has incorrect weight!')
+        return
+
+    # Check the column weights
+    for columnNum in np.arange(cols):
+      nonzeros = np.array(H[:,columnNum].nonzero())
+      if nonzeros.shape[1] != p:
+        print('Row', columnNum, 'has incorrect weight!')
+        return
 
     return H
 
 def encode(msg, G): #function for encoding
-  code = np.zeros((int(len(msg)*n/k)))
+  n1 = n-(p-1)
+  code = np.zeros((int(len(msg)*n1/k)))
   i, j = 0, 0
   while i < len(msg):
-      code[j:j+n] = (np.matmul(G.T, msg[i:i+k]))%2
+      code[j:j+n1] = (np.matmul(G.T, msg[i:i+k]))%2
       i += k
-      j += n
+      j += n1
   return code
 
-
 H = pc_matrix()
+print(H)
 G = generator(H)
+print(G)
 code_img = encode(img, G)
 
 
