@@ -126,15 +126,4 @@ def encode(msg, G): #function for encoding
 H = pc_matrix()
 G = generator(H)
 code_img = encode(img, G)
-
-
-
-
-
-
-        
-
-
-
-
-
+print(np.matmul(H[:, 0:n-2], G.T))
