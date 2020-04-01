@@ -217,15 +217,4 @@ print(H)
 G = generator(H)
 print(G)
 code_img = encode(img, G)
-
-
-
-
-
-
-        
-
-
-
-
-
+print(np.matmul(H[:, 0:n-2], G.T))
