@@ -57,8 +57,8 @@ def generator(H, verbose=False):
   #   I is (n-k) x (n-k) np.identity matrix
   #   m is (n-k) x k
   # This part is just copying the algorithm from getSystematicGmatrix
-  tempArray = gaussian_elimination(H)
-
+  #tempArray = gaussian_elimination(H)
+  tempArray = H
   # Next, swap I and m columns so the matrix takes the forms [m|I].
   n      = H.shape[1]
   k      = n - H.shape[0]
@@ -203,18 +203,19 @@ def pc_matrix(): #parity check matrix
     return H
 
 def encode(msg, G): #function for encoding
-  n1 = n-(p-1)
-  code = np.zeros((int(len(msg)*n1/k)))
+  k = G.shape[0]
+  code = np.zeros((int(len(msg)*n/k)))
   i, j = 0, 0
-  while i < len(msg):
-      code[j:j+n1] = (np.matmul(G.T, msg[i:i+k]))%2
+  while i+k < len(msg):
+      code[j:j+n] = (np.matmul(G.T, msg[i:i+k]))%2
       i += k
-      j += n1
+      j += n
+
   return code
 
-H = pc_matrix()
-print(H)
+H = gaussian_elimination(pc_matrix())
+print(H.shape)
 G = generator(H)
-print(G)
+print(G.shape)
+print(img.shape)
 code_img = encode(img, G)
-print(np.matmul(H[:, 0:n-2], G.T))
