@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import random
 from numpy.random import shuffle, randint
 from numpy.linalg import inv, det
+from numpy import *
 
 img = np.load('binary_image.npy')
 lx, ly = len(img), len(img[0])
@@ -15,6 +16,11 @@ size = lx*ly
 n, k = 20, 5
 p, q = 3, 4 #weights of columns and rows respectively
 m = n-k
+
+def pad_zeros(arr, k):
+  i = [0 for _ in range(k)]
+  return np.concatenate(arr, np.array(i))
+    
 
 def swap_columns(a,b,arrayIn):
   """
@@ -159,7 +165,7 @@ def pc_matrix(): #parity check matrix
       return
 
     # First submatrix first:
-    m = ((n*p) / q)+(p-1)  # number of rows in H matrix
+    m = ((n*p) / q) +(p-1) # number of rows in H matrix
     submatrix1 = np.zeros((int(m / p),n))
     for row in np.arange(int(m / p)):
       range1 = row*q
@@ -212,9 +218,91 @@ def encode(msg, G): #function for encoding
       j += n1
   return code
 
+def get_full_rank_H_matrix(H, verbose=False):
+  """
+  This function accepts a parity check matrix H and, if it is not
+  already full rank, will determine which rows are dependent and
+  remove them. The updated matrix will be returned.
+  """
+  tempArray = H.copy()
+  if linalg.matrix_rank(tempArray) == tempArray.shape[0]:
+    if verbose:
+      print('Returning H; it is already full rank.')
+    return tempArray
+
+  numRows = tempArray.shape[0]
+  numColumns = tempArray.shape[1]
+  limit = numRows
+  rank = 0
+  i = 0
+
+  # Create an array to save the column permutations.
+  columnOrder = arange(numColumns).reshape(1,numColumns)
+
+  # Create an array to save the row permutations. We just need
+  # this to know which dependent rows to delete.
+  rowOrder = arange(numRows).reshape(numRows,1)
+
+  while i < limit:
+    if verbose:
+      print('In get_full_rank_H_matrix; i:', i)
+      # Flag indicating that the row contains a non-zero entry
+    found  = False
+    for j in arange(i, numColumns):
+      if tempArray[i, j] == 1:
+        # Encountered a non-zero entry at (i, j)
+        found =  True
+        # Increment rank by 1
+        rank = rank + 1
+        # Make the entry at (i,i) be 1
+        tempArray = swap_columns(j,i,tempArray)
+        # Keep track of the column swapping
+        columnOrder = swap_columns(j,i,columnOrder)
+        break
+    if found == True:
+      for k in arange(0,numRows):
+        if k == i: continue
+        # Checking for 1's
+        if tempArray[k, i] == 1:
+          # Add row i to row k
+          tempArray[k,:] = tempArray[k,:] + tempArray[i,:]
+          # Addition is mod2
+          tempArray = tempArray.copy() % 2
+          # All the entries above & below (i, i) are now 0
+      i = i + 1
+    if found == False:
+      # Push the row of 0s to the bottom, and move the bottom
+      # rows up (sort of a rotation thing).
+      tempArray = move_row_to_bottom(i,tempArray)
+      # Decrease limit since we just found a row of 0s
+      limit -= 1
+      # Keep track of row swapping
+      rowOrder = move_row_to_bottom(i,rowOrder)
+
+  # Don't need the dependent rows
+  finalRowOrder = rowOrder[0:i]
+
+  # Reorder H, per the permutations taken above .
+  # First, put rows in order, omitting the dependent rows.
+  newNumberOfRowsForH = finalRowOrder.shape[0]
+  newH = zeros((newNumberOfRowsForH, numColumns))
+  for index in arange(newNumberOfRowsForH):
+    newH[index,:] = H[finalRowOrder[index],:]
+
+  # Next, put the columns in order.
+  tempHarray = newH.copy()
+  for index in arange(numColumns):
+    newH[:,index] = tempHarray[:,columnOrder[0,index]]
+
+  if verbose:
+    print('original H.shape:', H.shape)
+    print('newH.shape:', newH.shape)
+
+  return newH
+
 H = pc_matrix()
-print(H)
-G = generator(H)
-print(G)
+G = np.array(generator(H), dtype = bool)
+H = np.array(get_full_rank_H_matrix(H, True), dtype = bool)
 code_img = encode(img, G)
-print(np.matmul(H[:, 0:n-2], G.T))
+print(G.shape, H.shape)
+print(1*np.dot(G, (H.T)))
