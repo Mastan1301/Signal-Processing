@@ -46,7 +46,7 @@ def decomp(x):
     res = [np.dot(x, cos), np.dot(x, sin)]
     return res
 
-def belief_prop(demod): # decoding using belief-propagation/sum-product algorithm
+def belief_prop(demod): # decoding using belief-propagation/sum-product algorithms
 
 
 s = np.zeros(((int(code_len/2)), int(T*f_s)))
