@@ -46,6 +46,9 @@ def decomp(x):
     res = [np.dot(x, cos), np.dot(x, sin)]
     return res
 
+def belief_prop(demod): # decoding using belief-propagation/sum-product algorithm
+
+
 s = np.zeros(((int(code_len/2)), int(T*f_s)))
 for i in range(int(code_len/2)):
     s[i] = mod(code[2*i], code[2*i+1], i) #modulating
@@ -60,8 +63,9 @@ E_avg = T
 
 #Computing average energy per bit
 E_b =(E_avg*n)/(np.log2(M)*k)
+N_0 = 1e6
+w = WGN(f_s*N_0/2, code_len)
 
-N_0 = 2*var[t]/f_s
 r = s + w #received signal
 
 #demodulating scheme	
@@ -74,20 +78,18 @@ for i in range(len(r)):
     for j in range(M):
         dist[i][j] = np.linalg.norm(r_sym[i] - S_space[j]) #calculating the distance
 
-demod = np.zeros((len(code)))
+demod = np.zeros((code_len))
 i = 0
 while i < len(demod)/2:
     index = np.argmin(dist[i]) #minimum distance demodulation
     demod[2*i], demod[2*i+1] = bit_array[index][0], bit_array[index][1]
     i += 1
 
-decod = belief_prop(demod, n, k) #decoding 
+decod = belief_prop(demod) #decoding 
     
 error = (img != decod).sum()
 decod = decod.reshape(lx, ly)
 print("No. of incorrectly demodulated bits:", error)
-BER.append(error/size)
 print("Bit Error rate:", error/size, "\n")
 
-N0 = E_b/Eb_N0
-w = WGN(f_s*N_0/2, code_len)
+
