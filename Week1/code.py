@@ -40,9 +40,6 @@ def WGN(N_0):
         res[i] = np.random.normal(mu, sigma, s2)
     return res
 
-'''def E(x):
-    return (np.linalg.norm(x))**2'''
-
 def decomp(x):
     cos = [np.cos(2*np.pi*f_c*i)*np.sqrt(2/T) for i in np.linspace(0, T, n)]
     sin = [np.sin(2*np.pi*f_c*i)*np.sqrt(2/T) for i in np.linspace(0, T, n)]

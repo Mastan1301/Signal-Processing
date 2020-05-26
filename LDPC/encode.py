@@ -12,9 +12,8 @@ img = np.load('binary_image.npy')
 lx, ly = len(img), len(img[0])
 img = np.array(img).flatten()
 size = lx*ly
-n, k = 8, 3
-p, q = 3, 2 #weights of columns (w_c) and rows(w_r) respectively
-m = n-k
+n = 20
+p, q = 4, 5 #weights of columns (w_c) and rows(w_r) respectively
 
 def swap_columns(a,b,arrayIn):
   """
@@ -57,7 +56,7 @@ def generator(H, verbose=False):
   #   I is (n-k) x (n-k) np.identity matrix
   #   m is (n-k) x k
   # This part is just copying the algorithm from getSystematicGmatrix
-  tempArray = gaussian_elimination(H)
+  tempArray = H
   #tempArray = H
   # Next, swap I and m columns so the matrix takes the forms [m|I].
   n      = H.shape[1]
@@ -74,7 +73,7 @@ def generator(H, verbose=False):
     print('returning G with size: ', G.shape)
   return G
 
-def gaussian_elimination(H):
+def gaussian_elimination_G(g):
   """
   This function finds the systematic form of the gaussian_elimination
   matrix H. This form is G = [I P] where I is an np.identity
@@ -84,7 +83,7 @@ def gaussian_elimination(H):
   gaussian_elimination matrix format. Use the function generatorFromH
   for that purpose.
   """
-  tempArray = H.copy()
+  tempArray = g.copy()
   numRows = tempArray.shape[0]
   numColumns = tempArray.shape[1]
   limit = numRows
@@ -123,6 +122,81 @@ def gaussian_elimination(H):
   G = tempArray[0:i,:]
   return G
 
+def gaussian_elimination_H(H):
+  """
+  This function accepts a parity check matrix H and, if it is not
+  already full rank, will determine which rows are dependent and
+  remove them. The updated matrix will be returned.
+  """
+  tempArray = H.copy()
+  if np.linalg.matrix_rank(tempArray) == tempArray.shape[0]:
+    return tempArray
+
+  numRows = tempArray.shape[0]
+  numColumns = tempArray.shape[1]
+  limit = numRows
+  rank = 0
+  i = 0
+
+  # Create an array to save the column permutations.
+  columnOrder = np.arange(numColumns).reshape(1,numColumns)
+
+  # Create an array to save the row permutations. We just need
+  # this to know which dependent rows to delete.
+  rowOrder = np.arange(numRows).reshape(numRows,1)
+
+  while i < limit:
+      # Flag indicating that the row contains a non-zero entry
+    found  = False
+    for j in np.arange(i, numColumns):
+      if tempArray[i, j] == 1:
+        # Encountered a non-zero entry at (i, j)
+        found =  True
+        # Increment rank by 1
+        rank = rank + 1
+        # Make the entry at (i,i) be 1
+        tempArray = swap_columns(j,i,tempArray)
+        # Keep track of the column swapping
+        columnOrder = swap_columns(j,i,columnOrder)
+        break
+    if found == True:
+      for k in np.arange(0,numRows):
+        if k == i: continue
+        # Checking for 1's
+        if tempArray[k, i] == 1:
+          # Add row i to row k
+          tempArray[k,:] = tempArray[k,:] + tempArray[i,:]
+          # Addition is mod2
+          tempArray = tempArray.copy() % 2
+          # All the entries above & below (i, i) are now 0
+      i = i + 1
+    if found == False:
+      # Push the row of 0s to the bottom, and move the bottom
+      # rows up (sort of a rotation thing).
+      tempArray = move_row_to_bottom(i,tempArray)
+      # Decrease limit since we just found a row of 0s
+      limit -= 1
+      # Keep track of row swapping
+      rowOrder = move_row_to_bottom(i,rowOrder)
+
+  # Don't need the dependent rows
+  finalRowOrder = rowOrder[0:i]
+
+  # Reorder H, per the permutations taken above .
+  # First, put rows in order, omitting the dependent rows.
+  newNumberOfRowsForH = finalRowOrder.shape[0]
+  newH = np.zeros((newNumberOfRowsForH, numColumns))
+  for index in np.arange(newNumberOfRowsForH):
+    newH[index,:] = H[finalRowOrder[index],:]
+
+  # Next, put the columns in order.
+  tempHarray = newH.copy()
+  for index in np.arange(numColumns):
+    newH[:,index] = tempHarray[:,columnOrder[0,index]]
+
+  return newH
+
+
 def permut_index(s): #returns an np.array of randomly shuffled indices
     arr = list(range(s))
     res = []
@@ -156,7 +230,7 @@ def pc_matrix(): #parity check matrix
       return
 
     # First submatrix first:
-    m = ((n*p) / q)+(p-1)  # number of rows in H matrix
+    m = (n*p)/q  # number of rows in H matrix
     submatrix1 = np.zeros((int(m / p),n))
     for row in np.arange(int(m / p)):
       range1 = row*q
@@ -210,12 +284,9 @@ def encode(msg, G): #function for encoding
 
   return code
 
-H = gaussian_elimination(pc_matrix())
-G = generator(H)
-print(H.shape)
-print(G.shape)
+H = gaussian_elimination_H(pc_matrix())
+G = gaussian_elimination_G(generator(H))
 code_img = encode(img, G)
 np.savetxt("encoded_bits.dat", code_img)
 np.savetxt("G.dat", G)
 np.savetxt("H.dat", H)
-#print(np.dot(G, H.T)%2)

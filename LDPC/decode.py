@@ -14,7 +14,7 @@ code = np.loadtxt("./encoded_bits.dat")
 code_len = len(code)
 G, H = np.loadtxt("./G.dat"), np.loadtxt("./H.dat")
 
-n, k = len(G), 1
+n, k = G.shape[1], G.shape[0]
 M = 2
 
 img = np.array(img).flatten() #vectorising the matrix
@@ -40,33 +40,63 @@ def WGN(variance, length): # function to generate white-gaussian-noise
         res[i] = np.random.normal(mu, np.sqrt(variance), n1)
     return res
 
-def decompose(x):
-    cos = [np.cos(2*np.pi*f_c*i) for i in np.linspace(0, T, n1)] #basis function
-    res = np.dot(x, cos)/(2*n1)
+def decompose(x, Eb):
+    cos = [np.cos(2*np.pi*f_c*i)*np.sqrt(2/T) for i in np.linspace(0, T, n1)] #basis function
+    res = np.dot(x, cos)/np.sqrt(Eb)
     return res
 
-#def computeSign(vec):
+def second_min(vec, pos):
+    minEl = 1e8
+    for i in range(len(vec)):
+        if (i != pos and minEl > vec[i]):
+            minEl = vec[i]
+    return minEl
 
-
-def belief_prop(demod): # decoding using belief-propagation/sum-product algorithms
+def belief_prop(demod): # decoding using belief-propagation/sum-product/message-passing algorithm
     L = H.copy()
-    for i in range(int(len(demod)/n)):
-        r = demod[i:n*i]
-        for j in range(len(L)):
-            L[j] = np.dot(L[j], r)
-            # row operations
-            x = L[j]
-            pos = np.argmin(abs(x))
-            m1 = x[pos]
-            m2 = np.min(abs(x[x != m1]))
-            S = np.product(np.sign(x))
-            for k in range(len(x)):
-                if(k == pos):
-                    x[k] = S * np.sign(x[k]) * m2
-                else:
-                    x[k] = S * np.sign(x[k]) * m1
-        
+    decod = np.zeros(int(k*len(demod)/n)+1)
 
+    for i in range(int(len(demod)/n)):
+        r = demod[n*i : n*(i+1)]
+        for j in range(len(L)):
+                L[j] = np.dot(H[j], r) # equivalent to a Tanner graph construction
+
+        prevDecision = np.zeros(n)
+        currDecision = np.zeros(n)
+
+        while True:
+            for j in range(len(L)):
+                # row operations
+                x = L[j]
+                pos = np.argmin(abs(x)) # using min-sum approximation to |log(tanh(|x|/2))| function
+                m1 = abs(x[pos])
+                m2 = second_min(abs(x), pos)
+                S = np.product(np.sign(x))
+                for l in range(len(x)):
+                    if(l == pos):
+                        x[l] = S * np.sign(x[l]) * m2
+                    else:
+                        x[l] = S * np.sign(x[l]) * m1
+
+                L[j] = x
+
+            # column operations
+            for j in range(L.shape[1]):
+                sum_j = r[j] + np.sum(L[:, j])
+                L[:, j] = sum_j - L[:, j]
+                if sum_j < 0:
+                    currDecision[j] = 1
+                else:
+                    currDecision[j] = 0
+            
+            if(np.array_equal(currDecision, prevDecision)):
+                decod[k*i : k*(i+1)] = currDecision[0:k]
+                break
+
+            prevDecision = currDecision
+
+    return decod
+            
 
 #Manually computed average energy using integration
 E_avg = T
@@ -77,43 +107,22 @@ s = np.zeros((code_len, n1))
 for i in range(code_len):
     s[i] = modulate(code[i], Eb, i) #modulating
 
-#Here S_space entries are signal-space co-ordinates.
-S_space = np.array([[-1, 1], [-1, -1], [1, -1], [1, 1]])
-bit_array = np.array([[1, 0], [1, 1], [0, 1], [0, 0]])
-M = len(S_space)
-
-var = 10
+var = 0
 w = WGN(var, code_len)
 
-r = s + w #received signal
-
-#demodulating scheme	
-'''r_sym = np.zeros((int(code_len/2), 2))
-for i in range(len(r_sym)):
-    r_sym[i] = decompose(r[i]) #converting into signal space co-ordinates
-
-dist = np.zeros((len(r_sym), M)) #matrix to store the distance values from the 4 symbols
-for i in range(len(r)):
-    for j in range(M):
-        dist[i][j] = np.linalg.norm(r_sym[i] - S_space[j]) #calculating the distance
-
-demod = np.zeros((code_len))
-i = 0
-while i < len(demod)/2:
-    index = np.argmin(dist[i]) #minimum distance demodulation
-    demod[2*i], demod[2*i+1] = bit_array[index][0], bit_array[index][1]
-    i += 1'''
+r = s #received signal
 
 r_sym = np.zeros(code_len)
 for i in range(code_len):
-    r_sym[i] = decompose(r[i]) 
+    r_sym[i] = decompose(r[i], Eb) 
 
 print(r_sym)
-'''decod = belief_prop(demod) #decoding 
-    
+decod = belief_prop(r_sym) #decoding 
 error = (img != decod).sum()
-# decod = decod.reshape(lx, ly)
-print("No. of incorrectly demodulated bits:", error)
-print("Bit Error rate:", error/size, "\n")'''
+decod = decod.reshape(lx, ly)
+plt.imshow(decod, 'gray')
+plt.show()
+print("No. of incorrectly decoded bits:", error)
+print("Bit Error rate:", error/size, "\n")
 
 
