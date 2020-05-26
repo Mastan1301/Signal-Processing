@@ -61,8 +61,8 @@ def belief_prop(demod): # decoding using belief-propagation/sum-product/message-
         for j in range(len(L)):
                 L[j] = np.dot(H[j], r) # equivalent to a Tanner graph construction
 
-        prevDecision = np.zeros(n)
-        currDecision = np.zeros(n)
+        prevDecision = np.zeros(n) # to store the previously obtained decision
+        currDecision = np.zeros(n) # to store the current decision
 
         while True:
             for j in range(len(L)):
@@ -89,7 +89,7 @@ def belief_prop(demod): # decoding using belief-propagation/sum-product/message-
                 else:
                     currDecision[j] = 0
             
-            if(np.array_equal(currDecision, prevDecision)):
+            if(np.array_equal(currDecision, prevDecision)): # Stop the iteration if convergence is attained
                 decod[k*i : k*(i+1)] = currDecision[0:k]
                 break
 
@@ -114,9 +114,8 @@ r = s #received signal
 
 r_sym = np.zeros(code_len)
 for i in range(code_len):
-    r_sym[i] = decompose(r[i], Eb) 
+    r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
 
-print(r_sym)
 decod = belief_prop(r_sym) #decoding 
 error = (img != decod).sum()
 decod = decod.reshape(lx, ly)
