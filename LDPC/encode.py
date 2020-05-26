@@ -13,7 +13,7 @@ lx, ly = len(img), len(img[0])
 img = np.array(img).flatten()
 size = lx*ly
 n, k = 8, 3
-p, q = 3, 2 #weights of columns and rows respectively
+p, q = 3, 2 #weights of columns (w_c) and rows(w_r) respectively
 m = n-k
 
 def swap_columns(a,b,arrayIn):
@@ -212,6 +212,8 @@ def encode(msg, G): #function for encoding
 
 H = gaussian_elimination(pc_matrix())
 G = generator(H)
+print(H.shape)
+print(G.shape)
 code_img = encode(img, G)
 np.savetxt("encoded_bits.dat", code_img)
 np.savetxt("G.dat", G)
