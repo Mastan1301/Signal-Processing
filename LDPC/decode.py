@@ -25,11 +25,11 @@ def modulate(b1, Eb, i): # BPSK modulation function
     res = np.zeros(len(t))
     if(b1 == 0):    
         for j in range(len(t)):        
-            res[j] = np.sqrt(2*Eb/T) * np.cos(2*np.pi*f_c*t[j])
+            res[j] = np.cos(2*np.pi*f_c*t[j])
     
     if(b1 == 1):    
         for j in range(len(t)):
-            res[j] = -np.sqrt(2*Eb/T) * np.cos(2*np.pi*f_c*t[j])
+            res[j] = -np.cos(2*np.pi*f_c*t[j])
 
     return res
 
@@ -41,15 +41,15 @@ def WGN(variance, length): # function to generate white-gaussian-noise
     return res
 
 def decompose(x, Eb):
-    cos = [np.cos(2*np.pi*f_c*i)*np.sqrt(2/T) for i in np.linspace(0, T, n1)] #basis function
-    res = np.dot(x, cos)/np.sqrt(Eb)
+    cos = [np.cos(2*np.pi*f_c*i) for i in np.linspace(0, T, n1)] #basis function
+    res = np.dot(x, cos)/len(x)
     return res
 
 def second_min(vec, pos):
     minEl = 1e8
     for i in range(len(vec)):
-        if (i != pos and minEl > vec[i]):
-            minEl = vec[i]
+        if (i != pos):
+            minEl = min(minEl, vec[i])
     return minEl
 
 def belief_prop(demod): # decoding using belief-propagation/sum-product/message-passing algorithm
@@ -99,7 +99,8 @@ def belief_prop(demod): # decoding using belief-propagation/sum-product/message-
             
 
 #Manually computed average energy using integration
-E_avg = T
+Eg = 1e-6
+E_avg = Eg/2
 
 #Computing average energy per bit
 Eb =(E_avg*n)/(np.log2(M)*k)
@@ -107,12 +108,13 @@ s = np.zeros((code_len, n1))
 for i in range(code_len):
     s[i] = modulate(code[i], Eb, i) #modulating
 
-var = 0
+var = 10
 w = WGN(var, code_len)
 
-r = s #received signal
+r = s + w #received signal
 
 r_sym = np.zeros(code_len)
+
 for i in range(code_len):
     r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
 
