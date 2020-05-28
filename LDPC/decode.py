@@ -1,3 +1,5 @@
+# !/usr/bin/env python3
+
 # SISO decoder for an AWGN channel using belief propagation/message passing algorithm.
 
 import numpy as np
