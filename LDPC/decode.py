@@ -1,10 +1,9 @@
-# !/usr/bin/env python3
-
 # SISO decoder for an AWGN channel using belief propagation/message passing algorithm.
 
 import numpy as np
 import matplotlib.pyplot as plt 
 from scipy.stats import norm
+import time
 
 T = 1e-6
 f_s, f_c = 50e6, 2e6
@@ -106,26 +105,37 @@ E_avg = Eg/2
 
 #Computing average energy per bit
 Eb =(E_avg*n)/(np.log2(M)*k)
-s = np.zeros((code_len, n1))
-for i in range(code_len):
-    s[i] = modulate(code[i], Eb, i) #modulating
+Eb_N0_dB = [-10, -5, 0, 5, 10] #values of E_b/N_0 in dB
+Eb_N0 = [10**(i/10) for i in Eb_N0_dB] #corresponding values of E_b/N_0
+BER = []
 
-var = 10
-w = WGN(var, code_len)
+for j in range(len(Eb_N0)):
+    print("For E_b/N_0 =", Eb_N0_dB[j], "dB")
+    N_0 = Eb/Eb_N0[j]
+    w = WGN(f_s*N_0/2, code_len) #white gaussian noise
 
-r = s + w #received signal
+    s = np.zeros((code_len, n1))
+    for i in range(code_len):
+        s[i] = modulate(code[i], Eb, i) #modulating
 
-r_sym = np.zeros(code_len)
+    r = s + w #received signal
+    r_sym = np.zeros(code_len)
 
-for i in range(code_len):
-    r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
+    for i in range(code_len):
+        r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
 
-decod = belief_prop(r_sym) #decoding 
-error = (img != decod).sum()
-decod = decod.reshape(lx, ly)
-plt.imshow(decod, 'gray')
+    decod = belief_prop(r_sym) #decoding 
+    error = (img != decod).sum()
+    print("No. of incorrectly decoded bits:", error)
+    BER.append(error/size)
+    print("Bit Error rate:", error/size, "\n")
+    #decod = decod.reshape(lx, ly)
+    #plt.imshow(decod, 'gray')
+    #plt.show()
+
+plt.semilogy(Eb_N0_dB, BER)
+plt.xlabel('$E_b/N_0$ in dB')
+plt.ylabel('BER')
+#plt.savefig('BER_EbN0.jpg')
 plt.show()
-print("No. of incorrectly decoded bits:", error)
-print("Bit Error rate:", error/size, "\n")
-
 
