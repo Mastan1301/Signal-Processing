@@ -279,6 +279,6 @@ def encode(msg, G): #function for encoding
 H = pc_matrix()
 G = generator(H)
 code_img = encode(img, G)
-savetxt("encoded_bits.dat", code_img)
+savetxt("../encoded_bits.dat", code_img)
 savetxt("../G.dat", G)
 savetxt("../H.dat", H)
