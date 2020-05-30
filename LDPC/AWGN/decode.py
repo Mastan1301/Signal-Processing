@@ -8,12 +8,12 @@ import time
 T = 1e-6
 f_s, f_c = 50e6, 2e6
 n1 = int(T * f_s)
-img = np.load('./binary_image.npy')
+img = np.load('../binary_image.npy')
 lx, ly = len(img), len(img[0])
 
-code = np.loadtxt("./encoded_bits.dat")
+code = np.loadtxt("../encoded_bits.dat")
 code_len = len(code)
-G, H = np.loadtxt("./G.dat"), np.loadtxt("./H.dat")
+G, H = np.loadtxt("../G.dat"), np.loadtxt("../H.dat")
 
 n, k = G.shape[1], G.shape[0]
 M = 2
