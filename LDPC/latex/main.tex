@@ -1,0 +1,118 @@
+\documentclass[12pt]{extarticle}
+%Some packages I commonly use.
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{framed}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{enumerate}
+\usepackage[utf8]{inputenc}
+\usepackage[top=1 in,bottom=1in, left=1 in, right=1 in]{geometry}
+
+%A bunch of definitions that make my life easier
+\newcommand{\matlab}{{\sc Matlab} }
+\newcommand{\cvec}[1]{{\mathbf #1}}
+\newcommand{\rvec}[1]{\vec{\mathbf #1}}
+\newcommand{\ihat}{\hat{\textbf{\i}}}
+\newcommand{\jhat}{\hat{\textbf{\j}}}
+\newcommand{\khat}{\hat{\textbf{k}}}
+\newcommand{\minor}{{\rm minor}}
+\newcommand{\trace}{{\rm trace}}
+\newcommand{\spn}{{\rm Span}}
+\newcommand{\rem}{{\rm rem}}
+\newcommand{\ran}{{\rm range}}
+\newcommand{\range}{{\rm range}}
+\newcommand{\mdiv}{{\rm div}}
+\newcommand{\proj}{{\rm proj}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\<}{\langle}
+\renewcommand{\>}{\rangle}
+\renewcommand{\emptyset}{\varnothing}
+\newcommand{\attn}[1]{\textbf{#1}}
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem*{definition}{Definition}
+\newtheorem*{example}{Example}
+\newtheorem*{note}{Note}
+\newtheorem{exercise}{Exercise}
+\newcommand{\bproof}{\bigskip {\bf Proof. }}
+\newcommand{\eproof}{\hfill\qedsymbol}
+\newcommand{\Disp}{\displaystyle}
+\newcommand{\qe}{\hfill\(\bigtriangledown\)}
+\setlength{\columnseprule}{1 pt}
+
+\title{INDEPENDENT PROJECT (EE2025) \\ Progress report}
+\date{June 01, 2020}
+
+\begin{document}
+
+\maketitle
+\section{\underline{Project idea}}
+\begin{itemize}
+    \item \textbf{Topic}:\;  \;LDPC implementation 
+    \item \textbf{Mentor/Instructor:} Dr. Shashank Vatedka
+\end{itemize}
+\section{\underline{Team Details}}
+\begin{itemize}
+    \item Shaik Mastan Vali - EE18BTECH11039
+    \item J. Prabhath Lakshminarayana - EE18BTECH11021
+    \item K. Srikanth - EE18BTECH11023
+\end{itemize}
+\section{\underline{Objective}}
+Implementation of LDPC (Low Density Parity Check) encoder and decoder (using belief propagation/message-passing algorithm) for three different channels, AWGN, BSC and BEC channels. Once the implementation is done, the encoder and decoder will be optimised using one of the available techniques. \\
+If time permits, we are planning to work on the graphical web interface for the entire project.
+\section{\underline{Progress:}}
+So far, we have completed the construction of LDPC code (Gallager’s construction) and implemented the decoder for AWGN channel. We are currently working on BSC and BEC channel implementations.
+\newpage
+\begin{center}
+    \large{\textbf{\underline{Problems encountered and Our Approach to the solution
+}}}
+\end{center}
+\section{\underline{Encoder:}}
+We have constructed the regular sparse parity-check matrix (\textbf{H}) using Gallager’s construction. \\
+\\
+ \textbf{{1. Problem faced:}}  We came to know that the matrix constructed using Gallager’s construction is not full rank. Hence, the code rate will be different from the design rate. We faced difficulty in computing the generator matrix using Gaussian Elimination procedure. \\
+\;\;\;\textbf{{Solution:}}When the parity check matrix is not full rank, we delete the dependent rows in the \textbf{H} matrix to compute the \textbf{G} matrix.
+\\
+\section{\underline{AWGN(Additive White Gaussion Noise):}}
+\textbf{1. Problem faced:}  The type of modulation to be used.\\
+\textbf{Solution :} We looked at the appropriate references and decided to use BPSK modulation, since it is a standard practice\\
+\\
+\textbf{2. Problem faced:}  Demodulation.\\
+\textbf{Solution :}  We cannot do hard demodulation, since we are implementing a SISO (soft-input soft-output) decoder. So, instead of using minimum distance demodulation, we simply integrated the received signal(\textbf{r}) with the basis function to convert it from signal form to a symbol (real number).
+\\
+\\
+\textbf{3. Problem faced:}  Recursive calculation of the tan-hyperbolic function.
+\\
+\textbf{Solution :} While implementing the decoder, we had to calculate the tan-hyperbolic functions recursively (for a large number of iterations). This leads to a lot of computation time. We found that there is a better way to compute the extrinsic information (extrinsic LLR) using the Min-sum approximation
+\\
+\\\textbf{4. Problem faced:}  Number of iterations in the decoder is not specific.\\
+\textbf{Solution :} In practical cases, the number of iterations to be done for acceptable BER is 20-30. We did not fix the number of iterations in the decoding program. We stop the iteration once convergence is reached, i.e; when the previous decision is equal to the current decision. We checked this procedure against the fixed number of iterations procedure, and obtained similar results.
+\\
+\section{\underline{BSC(Binary Symmetric Channel):}}
+\textbf{1. Problem faced:} We found out that the Maximum Likelihood decoding of an LDPC code on the BSC is an NP-Complete Problem and hence is not a practical approach.\\
+\textbf{Solution :} We looked for many alternate approaches. We are working on ways to use the Belief Propagation algorithm in the BSC for decoding. Currently we are implementing the Gallagher A decoder on the Tanner Graph.
+
+\section{\underline{Remaining work}}
+\begin{itemize}
+    \item BSC
+    \item BEC
+    \item Optimal techniques
+    \item Graphical Interface (under consideration)
+\end{itemize}
+\section{\underline{References:}} 
+\begin{itemize}
+    \item Information Theory, Inference, and Learning Algorithms by David J.C. MacKay
+    \item NPTEL
+
+
+\end{itemize}
+
+\end{document}

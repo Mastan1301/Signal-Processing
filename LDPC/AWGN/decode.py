@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 from scipy.stats import norm
-import time
+import time, math
 
 T = 1e-6
 f_s, f_c = 50e6, 2e6
@@ -55,7 +55,7 @@ def second_min(vec, pos):
 
 def belief_prop(demod): # decoding using belief-propagation/sum-product/message-passing algorithm
     L = H.copy()
-    decod = np.zeros(int(k*len(demod)/n)+1)
+    decod = np.zeros(math.ceil(k*len(demod)/n))
 
     for i in range(int(len(demod)/n)):
         r = demod[n*i : n*(i+1)]
