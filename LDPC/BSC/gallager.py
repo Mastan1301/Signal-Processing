@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 import math
+import commpy
 
 #Loading the Parameters from the Encoding
 img = np.load('../binary_image.npy')
@@ -13,11 +14,6 @@ G, H = np.loadtxt("../G.dat"), np.loadtxt("../H.dat")
 n, k = G.shape[1], G.shape[0]
 img = np.array(img).flatten() #vectorising the matrix
 size = len(img)
-
-wr = 0
-for i in range(n):
-	if H[0][i] == 1:
-		wr += 1
 
 row = [[] for _ in range(len(H))] # for storing indices of non-zero entries (corresponding to a particular row or column) in H 
 col = [[] for _ in range(n)]
@@ -65,6 +61,7 @@ def decode(code):
 	for i in range(int(len(code)/n)):		
 		r = code[n*i : n*(i+1)]
 		c = r
+		x = L # for storing the output of current iteration
 
 		for j in range(len(L)):
 			L[j] = np.dot(H[j], r)
@@ -75,13 +72,15 @@ def decode(code):
 					#column operations
 					temp = findMax(L[:, l], l, j)
 					if(temp == findMin(L[:, l], l, j)): # if all entries of the column are equal.
-						L[j][l] = temp
+						x[j][l] = temp
 						c[l] = temp
 					else:
-						L[j][l] = r[l]
+						x[j][l] = r[l]
 
 					#row operations
-					L[j][l] = xor(L[j], l)
+					x[j][l] = xor(L[j], l)
+
+			L = x # storing the values of previous iteration
 
 			res[k*i : k*(i+1)] = c[0:k]				
     
