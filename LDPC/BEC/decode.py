@@ -4,6 +4,7 @@
 
 import numpy as np 
 import matplotlib.pyplot as plt
+import commpy.channels
 
 img = np.load('../binary_image.npy')
 lx, ly = len(img), len(img[0])
@@ -16,21 +17,18 @@ n, k = G.shape[1], G.shape[0]
 img = np.array(img).flatten() #vectorising the matrix
 size = len(img)
 
-def channel(code, p): # simulation of a binary erasure channel
-
-
-def belief_prop():
-
-
+def belief_prop(r):
+    res = np.zeros(size)
+    return res
 
 
 
-P = [0.1, 0.2, 0.3, 0.4, 0.5]
+P = [0.1, 0.2, 0.3, 0.4, 0.5] # probability of erasure
 BER = []
 
 for i in P:
     print("For p =", i)
-    r = channel(code_img, i)
+    r = commpy.channels.bec(code, i) # received bits. Here, '-1' is the erasure symbol.
     decod = belief_prop(r)
     error = (img != decod).sum()
     print("No. of incorrectly decoded bits:", error)
