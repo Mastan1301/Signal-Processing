@@ -54,14 +54,13 @@ def findMin(arr, index, n):
 	return res
 
 # Gallagher-A decoder function
-def decode(code):
+def decode(bits):
 	L = H.copy()
-	res = np.zeros(math.ceil(k*len(code)/n))
+	res = np.zeros(math.ceil(k*len(bits)/n))
 
-	for i in range(int(len(code)/n)):		
-		r = code[n*i : n*(i+1)]
+	for i in range(int(len(bits)/n)):		
+		r = bits[n*i : n*(i+1)]
 		c = r
-		x = L # for storing the output of current iteration
 
 		for j in range(len(L)):
 			L[j] = np.dot(H[j], r)
@@ -72,15 +71,13 @@ def decode(code):
 					#column operations
 					temp = findMax(L[:, l], l, j)
 					if(temp == findMin(L[:, l], l, j)): # if all entries of the column are equal.
-						x[j][l] = temp
+						L[j][l] = temp
 						c[l] = temp
 					else:
-						x[j][l] = r[l]
+						L[j][l] = r[l]
 
 					#row operations
-					x[j][l] = xor(L[j], l)
-
-			L = x # storing the values of previous iteration
+					L[j][l] = xor(L[j], l)
 
 			res[k*i : k*(i+1)] = c[0:k]				
     
