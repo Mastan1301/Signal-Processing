@@ -96,6 +96,12 @@ for i in p:
 	BER.append(error/size)
 	print("Bit Error rate:", error/size, "\n")
 
+plt.plot(p, BER)
+plt.xlabel("p")
+plt.ylabel("BER")
+plt.savefig("../figs/BSC.png")
+plt.show()
+
 
 
 
