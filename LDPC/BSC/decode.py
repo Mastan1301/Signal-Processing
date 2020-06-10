@@ -81,15 +81,15 @@ def decode(bits):
 
 			res[k*i : k*(i+1)] = c[0:k]				
     
-	return res
-            
+	return res 
+
 	
 p = [0.1, 0.2, 0.3, 0.4, 0.5]
 BER = []
 
 for i in p:
 	print("For p = ", i)
-	r = BSC(code, i) #Received Bits
+	r = BSC(code.astype(int), i) #Received Bits
 	decod = decode(r)
 	error = (img != decod).sum()
 	print("No. of incorrectly decoded bits:", error)

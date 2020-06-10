@@ -85,6 +85,7 @@ def belief_prop(bits):
 
     return res
 
+
 P = [0.1, 0.2, 0.3, 0.4, 0.5] # probability of erasure
 BER = []
 
