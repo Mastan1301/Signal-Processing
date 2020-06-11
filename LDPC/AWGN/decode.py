@@ -109,7 +109,7 @@ def belief_prop(demod): # decoding using belief-propagation/sum-product/message-
     for i in range(int(len(demod)/n)):
         r = demod[n*i : n*(i+1)]
         for j in range(len(L)):
-                L[j] = np.dot(H[j], r) # equivalent to a Tanner graph construction
+            L[j] = H[j]*r # equivalent to a Tanner graph construction
 
         prevDecision = np.zeros(n) # to store the previously obtained decision
         currDecision = np.zeros(n) # to store the current decision
@@ -156,7 +156,7 @@ def gallager(bits):
 	    c = r
 
 	    for j in range(len(L)):
-		    L[j] = np.dot(H[j], r)
+		    L[j] = H[j]*r
 
 	    for _ in range(10): # no. of iterations
 		    for j in range(len(H)):

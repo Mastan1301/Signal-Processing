@@ -18,7 +18,7 @@ n, k = G.shape[1], G.shape[0]
 img = np.array(img).flatten() #vectorising the matrix
 size = len(img)
 
-row = [[] for _ in range(len(H))] # for storing indices of non-zero entries (corresponding to a particular row or column) in H 
+row = [[] for _ in range(len(H))] # Analogous to an adjacency list reperesentation of a graph. For storing indices of non-zero entries (corresponding to a particular row or column) in H. 
 col = [[] for _ in range(n)]
 
 for i in range(len(H)):
@@ -60,17 +60,11 @@ def belief_prop(bits):
         r = bits[n*i : n*(i+1)]
 
         for j in range(len(L)):
-            L[j] = np.dot(H[j], r)
+            L[j] = H[j]*r
 
         for _ in range(10): # no. of iterations
-            # column operations
-            for j in range(n):
-                if count_e(L[:, j]) != wc:
-                    L[:, j] = assign(L[:, j], j)
-                    r[j] = L[0][j]
-
             # row operations
-            for j in range(k):
+            for j in range(len(L)):
                 index = 0
                 cnt = 0
                 for l in range(n):
@@ -78,18 +72,27 @@ def belief_prop(bits):
                         index = l
                         cnt += 1
                 
-                if cnt == 1:
+                if cnt == 1: # if exactly one variable in a row is erased
                     L[j][index] = xor(L[j], index)
+
+            # column operations
+            for j in range(n):
+                if count_e(L[:, j]) != wc:
+                    L[:, j] = assign(L[:, j], j)
+                    for l in col[j]:
+                        if L[l][j] != -1:
+                            r[j] = L[l][j]
+                            break            
 
             res[k*i : k*(i+1)] = r[0:k]
 
     return res
 
 
-P = [0.1, 0.2, 0.3, 0.4, 0.5] # probability of erasure
+p = [0.1, 0.2, 0.3, 0.4, 0.5] # probability of erasure
 BER = []
 
-for i in P:
+for i in p:
     print("For p =", i)
     r = commpy.channels.bec(code, i) # received bits. Here, '-1' is the erasure symbol.
     decod = belief_prop(r)
@@ -98,7 +101,7 @@ for i in P:
     BER.append(error/size)
     print("Bit Error rate:", error/size, "\n")
 
-plt.plot(P, BER)
+plt.plot(p, BER, marker = 'o')
 plt.xlabel('p')
 plt.ylabel('BER')
 plt.savefig('../figs/BEC.png')

@@ -15,7 +15,7 @@ n, k = G.shape[1], G.shape[0]
 img = np.array(img).flatten() #vectorising the matrix
 size = len(img)
 
-row = [[] for _ in range(len(H))] # for storing indices of non-zero entries (corresponding to a particular row or column) in H 
+row = [[] for _ in range(len(H))] # Analogous to an adjacency list reperesentation of a graph. For storing indices of non-zero entries (corresponding to a particular row or column) in H 
 col = [[] for _ in range(n)]
 
 for i in range(len(H)):
@@ -63,7 +63,7 @@ def decode(bits):
 		c = r
 
 		for j in range(len(L)):
-			L[j] = np.dot(H[j], r)
+			L[j] = H[j]*r
 
 		for _ in range(10): # no. of iterations
 			for j in range(len(H)):
@@ -96,7 +96,7 @@ for i in p:
 	BER.append(error/size)
 	print("Bit Error rate:", error/size, "\n")
 
-plt.plot(p, BER)
+plt.plot(p, BER, marker = 'o')
 plt.xlabel("p")
 plt.ylabel("BER")
 plt.savefig("../figs/BSC.png")
