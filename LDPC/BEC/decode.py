@@ -4,7 +4,6 @@
 
 import numpy as np 
 import matplotlib.pyplot as plt
-import commpy.channels
 import math
 
 img = np.load('../binary_image.npy')
@@ -52,7 +51,17 @@ def assign(arr, colIndex):
 
     return arr
 
-def belief_prop(bits):
+def BEC(data, p): # channel simulation
+	b = np.array(np.random.rand(len(data)) < p, dtype = np.int)
+	ans = np.zeros(len(data))
+	for i in range(len(data)):
+		if(b[i]):
+			ans[i] = -1
+		else:
+			ans[i] = data[i]
+	return ans
+
+def belief_prop(bits): # decoding
     L = H.copy()
     res = np.zeros(math.ceil(k*len(bits)/n))
 
@@ -94,7 +103,7 @@ BER = []
 
 for i in p:
     print("For p =", i)
-    r = commpy.channels.bec(code, i) # received bits. Here, '-1' is the erasure symbol.
+    r = BEC(code, i) # received bits. Here, '-1' is the erasure symbol.
     decod = belief_prop(r)
     error = (img != decod).sum()
     print("No. of incorrectly decoded bits:", error)
