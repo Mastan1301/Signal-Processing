@@ -1,0 +1,42 @@
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <title>SimuLDPC</title>
+    <style>
+        .text{
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-wrapper black">
+            <a href="/" class="brand-logo center" style = "font-weight: bold">SimuLDPC</a>
+        </div>
+    </nav>
+    <br><br>
+    <div class="container">
+        <div class="row">
+            {% for ch in channels %}
+                <div class="col s12 m7 l4">
+                    <div class="card grey darken-4">
+                        <div class="card-image">
+                        <img src={{ch.channel_img.url}} height = "40%">
+                        <span class="card-title text" style = "background-color: black; font-weight: bold">{{ch.channel_type}}</span>
+                    </div>
+                    <div class="card-content text">
+                        <p>{{ch.channel_summary}}</p>
+                    </div>
+            <div class="card-action center">
+            <a class="waves-effect waves-light btn" href = {{ch.channel_slug}}><span class = "text">GO</span></a>
+            </div>
+      </div>
+    </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
