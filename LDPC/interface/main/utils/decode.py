@@ -279,6 +279,7 @@ for j in range(len(Eb_N0)):
         r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
 
     decod = beliefProp(r_sym, f_s * N_0/2) # decoding
+    #decod = 0
     decod_m = beliefProp_Minsum(r_sym, f_s * N_0/2)
 
     error = (img != decod).sum()

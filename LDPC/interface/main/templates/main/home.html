@@ -22,7 +22,8 @@
         <div class="row">
             {% for ch in channels %}
                 <div class="col s12 m7 l4">
-                    <div class="card grey darken-4">
+                    <a href = {{ch.channel_slug}}>
+                    <div class="card hoverable grey darken-4">
                         <div class="card-image">
                         <img src={{ch.channel_img.url}} height = "40%">
                         <span class="card-title text" style = "background-color: black; font-weight: bold">{{ch.channel_type}}</span>
@@ -31,9 +32,10 @@
                         <p>{{ch.channel_summary}}</p>
                     </div>
             <div class="card-action center">
-            <a class="waves-effect waves-light btn" href = {{ch.channel_slug}}><span class = "text">GO</span></a>
+            <a class="waves-effect hoverable waves-light btn" href = {{ch.channel_slug}}><span class = "text">GO</span></a>
             </div>
       </div>
+      </a>
     </div>
             {% endfor %}
         </div>

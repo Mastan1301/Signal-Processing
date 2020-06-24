@@ -1,0 +1,69 @@
+<head>
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <title>SimuLDPC</title>
+    <style>
+        .text {
+            color: white !important;
+        }
+        
+        .navbar {
+            background-color: black;
+            font-weight: bold;
+            height: 10%;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a class="navbar-brand text">AWGN channel</a>
+    </nav>
+    <br><br>
+
+    <form method="POST">
+        <div class="container">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="snr" class="col-sm-1 col-form-label" style="font-weight: bold">SNR:</label>
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" name="snr" id="snr" placeholder="Enter an array of SNR values. For eg: [1, 2, 3]">
+                        </div>
+                    </div>
+                    <br> <br>
+                    <div class="form-group col">
+                        <label for="img" style="font-weight: bold">Upload a gray-scale *.png image file: </label>
+                        <div class="col-md-10">
+                            <input type="file" class="form-control-file" name="img" id="img">
+                        </div>
+                    </div>
+                    <br> <br>
+                    <div class="col text-center">
+                        <button type="submit" class="btn btn-primary btn-lg" style="background-color: teal;">Simulate</button>
+                    </div>
+
+                </div>
+
+                <div class="col">
+                    <div class="col-md-10">
+                        <div class="card text-center text" style="background-color: black; font-weight: bold">
+                            <img src="../media/figs/awgn_w5Zvil9_dAryJBX.jpg" class="img-fluid float-left" alt="Responsive image">
+                            <div class="card-body">
+                                <p class="card-text">Uploaded Image</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </form>
+
+</body>
