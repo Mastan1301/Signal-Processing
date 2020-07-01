@@ -2,17 +2,17 @@
 
 import numpy as np
 import matplotlib.pyplot as plt 
-import time, math
+import math
 
 T = 1e-6
 f_s, f_c = 50e6, 2e6
 n1 = int(T * f_s)
-img = np.load('../binary_image.npy')
+img = np.load('./media/figs/input.npy')
 lx, ly = len(img), len(img[0])
 
-code = np.loadtxt("../encoded_bits.dat")
+code = np.loadtxt("./media/data/encoded_bits.dat")
 code_len = len(code)
-G, H = np.loadtxt("../G.dat"), np.loadtxt("../H.dat")
+G, H = np.loadtxt("./media/data/G.dat"), np.loadtxt("./media/data/H.dat")
 
 n, k = G.shape[1], G.shape[0]
 M = 2
@@ -256,76 +256,103 @@ E_avg = Eg/2
 
 #Computing average energy per bit
 Eb =(E_avg*n)/(np.log2(M)*k)
-Eb_N0_dB = [-10, -5, 0, 5, 10] #values of E_b/N_0 in dB
-Eb_N0 = [10**(i/10) for i in Eb_N0_dB] #corresponding values of E_b/N_0
-BER_b = []
-BER_g = []
-BER_m = []
 
-print("Belief Propagation: ##########################################\n")
-for j in range(len(Eb_N0)):
-    print("For E_b/N_0 =", Eb_N0_dB[j], "dB")
-    N_0 = Eb/Eb_N0[j]
-    w = WGN(f_s * N_0/2, code_len) # white gaussian noise
+def main(snr, algo):
+    BER_b = []
+    BER_g = []
+    BER_m = []
 
-    s = np.zeros((code_len, n1))
-    for i in range(code_len):
-        s[i] = modulate(code[i], Eb, i) # modulating
+    res = {}
+    Eb_N0_dB = list(map(float, snr.split(" "))) #values of E_b/N_0 in dB
+    Eb_N0 = [10**(i/10) for i in Eb_N0_dB] #corresponding values of E_b/N_0
 
-    r = s + w # received signal
-    r_sym = np.zeros(code_len)
+    if algo == '1':
+        for j in range(len(Eb_N0)):
+            N_0 = Eb/Eb_N0[j]
+            w = WGN(f_s * N_0/2, code_len) # white gaussian noise
 
-    for i in range(code_len):
-        r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
+            s = np.zeros((code_len, n1))
+            for i in range(code_len):
+                s[i] = modulate(code[i], Eb, i) # modulating
 
-    decod = beliefProp(r_sym, f_s * N_0/2) # decoding
-    #decod = 0
-    decod_m = beliefProp_Minsum(r_sym, f_s * N_0/2)
+            r = s + w # received signal
+            r_sym = np.zeros(code_len)
 
-    error = (img != decod).sum()
-    error_m = (img != decod_m).sum()
+            for i in range(code_len):
+                r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
 
-    print("No. of incorrectly decoded bits (without min-sum):", error)
-    print("Bit Error rate (without min-sum):", error/size)
-    print("No. of incorrectly decoded bits (with min-sum):", error_m)
-    print("Bit Error rate (with min-sum):", error_m/size, "\n")
-    BER_b.append(error/size)
-    BER_m.append(error_m/size)    
-    # decod = decod.reshape(lx, ly) 
-    # plt.imshow(decod, 'gray')
-    # plt.show()
+            decod = beliefProp(r_sym, f_s * N_0/2) # decoding
 
-print("Gallagher-A decoding: ########################################## \n")
-for j in range(len(Eb_N0)):
-    print("For E_b/N_0 =", Eb_N0_dB[j], "dB")
-    N_0 = Eb/Eb_N0[j]
-    w = WGN(f_s*N_0/2, code_len) # white gaussian noise
+            error = (img != decod).sum()
 
-    s = np.zeros((code_len, n1))
-    for i in range(code_len):
-        s[i] = modulate(code[i], Eb, i) # modulating
+            BER_b.append(error/size)
+            res[Eb_N0_dB[j]] = round(BER_b[j], 3)
 
-    r = s + w # received signal
-    r_sym = np.zeros(code_len)
+        plt.figure()
+        plt.semilogy(Eb_N0_dB, BER_b, label = "Belief-propagation (BP)", marker = 'o')
+        plt.legend()
+        plt.xlabel('$E_b/N_0$ in dB')
+        plt.ylabel('BER')
+        plt.savefig('./media/figs/output.png')
+        return res
 
-    for i in range(code_len):
-        r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
+    elif algo == '2':
+        for j in range(len(Eb_N0)):
+            N_0 = Eb/Eb_N0[j]
+            w = WGN(f_s * N_0/2, code_len) # white gaussian noise
 
-    demod = demodulate(r_sym) # demodulating
+            s = np.zeros((code_len, n1))
+            for i in range(code_len):
+                s[i] = modulate(code[i], Eb, i) # modulating
 
-    decod = gallagher(demod) # decoding 
-    error = (img != decod).sum()
-    print("No. of incorrectly decoded bits:", error)
-    BER_g.append(error/size)
-    print("Bit Error rate:", error/size, "\n")
+            r = s + w # received signal
+            r_sym = np.zeros(code_len)
 
-plt.figure()
-plt.semilogy(Eb_N0_dB, BER_b, label = "Belief-propagation (BP)", marker = 'o')
-plt.semilogy(Eb_N0_dB, BER_m, label = "BP with min-sum", marker = 'o')
-plt.semilogy(Eb_N0_dB, BER_g, label = "Gallagher-A", marker = 'o')
-plt.legend()
-plt.xlabel('$E_b/N_0$ in dB')
-plt.ylabel('BER')
-plt.savefig('../figs/AWGN.png')
-plt.show()
+            for i in range(code_len):
+                r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
+
+            decod = beliefProp_Minsum(r_sym, f_s * N_0/2) # decoding
+
+            error = (img != decod).sum()
+
+            BER_m.append(error/size)
+            res[Eb_N0_dB[j]] = round(BER_m[j], 3)
+
+        plt.figure()
+        plt.semilogy(Eb_N0_dB, BER_m, label = "BP using Min-sum", marker = 'o')
+        plt.legend()
+        plt.xlabel('$E_b/N_0$ in dB')
+        plt.ylabel('BER')
+        plt.savefig('./media/figs/output.png')
+        return res 
+
+    for j in range(len(Eb_N0)):
+        N_0 = Eb/Eb_N0[j]
+        w = WGN(f_s*N_0/2, code_len) # white gaussian noise
+
+        s = np.zeros((code_len, n1))
+        for i in range(code_len):
+            s[i] = modulate(code[i], Eb, i) # modulating
+
+        r = s + w # received signal
+        r_sym = np.zeros(code_len)
+
+        for i in range(code_len):
+            r_sym[i] = decompose(r[i], Eb) # converting from signal to symbols
+
+        demod = demodulate(r_sym) # demodulating
+
+        decod = gallagher(demod) # decoding 
+        error = (img != decod).sum()
+        BER_g.append(error/size)
+        res[Eb_N0_dB[j]] = round(BER_g[j], 3)
+
+    plt.figure()
+    plt.semilogy(Eb_N0_dB, BER_g, label = "Gallagher-A", marker = 'o')
+    plt.legend()
+    plt.xlabel('$E_b/N_0$ in dB')
+    plt.ylabel('BER')
+    plt.savefig('./media/figs/output.png')
+
+    return res
 

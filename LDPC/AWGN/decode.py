@@ -251,11 +251,11 @@ def gallagher(bits):
 
 ################################################################################################################
 
-Eg = 1e-6
-E_avg = Eg/2
+E_avg = T/2
 
 #Computing average energy per bit
 Eb =(E_avg*n)/(np.log2(M)*k)
+
 Eb_N0_dB = [-10, -5, 0, 5, 10] #values of E_b/N_0 in dB
 Eb_N0 = [10**(i/10) for i in Eb_N0_dB] #corresponding values of E_b/N_0
 BER_b = []

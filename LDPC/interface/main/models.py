@@ -1,7 +1,5 @@
 from django.db import models
 
-# Create your models here.
-
 class Channel(models.Model):
     channel_type = models.CharField(max_length = 200)
     channel_summary = models.CharField(max_length = 200)
@@ -10,5 +8,4 @@ class Channel(models.Model):
 
     def __str__(self):
         return self.channel_type
-    
     

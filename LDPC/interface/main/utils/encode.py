@@ -8,30 +8,12 @@ import random
 from numpy.random import shuffle, randint
 from numpy.linalg import inv, det
 
-img = load('../binary_image.npy')
-lx, ly = len(img), len(img[0])
-img = array(img).flatten()
-size = lx*ly
 n = 20
 p, q = 4, 5 #weights of columns (w_c) and rows(w_r) respectively
 
 def pc_matrix():
-    """
-    This function constructs a LDPC parity check matrix
-    H. The algorithm follows Gallager's approach where we create
-    p submatrices and stack them together. Reference: Turbo
-    Coding for Satellite and Wireless Communications, section
-    9,3.
-    Note: the matrices computed from this algorithm will never
-    have full rank. (Reference Gallager's Dissertation.) They
-    will have rank = (number of rows - p + 1). To convert it
-    to full rank, use the function get_full_rank_H_matrix
-    """
-
     ratioTest = (n*1.0) / q
     if ratioTest%1 != 0:
-      print('\nError in pc_matrix: The ', end='')
-      print('ratio of inputs n/q must be a whole number.\n')
       return
 
     # First submatrix first:
@@ -66,14 +48,12 @@ def pc_matrix():
     for rowNum in arange(rows):
       nonzeros = array(H[rowNum,:].nonzero())
       if nonzeros.shape[1] != q:
-        print('Row', rowNum, 'has incorrect weight!')
         return
 
     # Check the column weights
     for columnNum in arange(cols):
       nonzeros = array(H[:,columnNum].nonzero())
       if nonzeros.shape[1] != p:
-        print('Row', columnNum, 'has incorrect weight!')
         return
 
     return H
@@ -93,13 +73,6 @@ def swap_columns(a,b,arrayIn):
   return arrayOut
 
 def move_row_to_bottom(i,arrayIn):
-  """"
-  Moves a specified row (just one) to the bottom of the matrix,
-  then rotates the rows at the bottom up.
-  For example, if we had a matrix with 5 rows, and we wanted to
-  push row 2 to the bottom, then the resulting row order would be:
-  1,3,4,5,2
-  """
   arrayOut = arrayIn.copy()
   numRows = arrayOut.shape[0]
   # Push the specified row to the bottom.
@@ -112,15 +85,7 @@ def move_row_to_bottom(i,arrayIn):
   return arrayOut
 
 def getSystematicGmatrix(GenMatrix):
-  """
-  This function finds the systematic form of the generator
-  matrix GenMatrix. This form is G = [I P] where I is an identity
-  matrix and P is the parity submatrix. If the GenMatrix matrix
-  provided is not full rank, then dependent rows will be deleted.
-  This function does not convert parity check (H) matrices to the
-  generator matrix format. Use the function generator
-  for that purpose.
-  """
+  
   tempArray = GenMatrix.copy()
   numRows = tempArray.shape[0]
   numColumns = tempArray.shape[1]
@@ -161,14 +126,6 @@ def getSystematicGmatrix(GenMatrix):
   return G
 
 def generator(H, verbose=False):
-  """
-  If given a parity check matrix H, this function returns a
-  generator matrix G in the systematic form: G = [I P]
-    where:  I is an identity matrix, size k x k
-            P is the parity submatrix, size k x (n-k)
-  If the H matrix provided is not full rank, then dependent rows
-  will be deleted first.
-  """
   # First, put the H matrix into the form H = [I|m] where:
   #   I is (n-k) x (n-k) identity matrix
   #   m is (n-k) x k
@@ -189,11 +146,6 @@ def generator(H, verbose=False):
   return G
 
 def get_full_rank_H_matrix(H, verbose=False):
-  """
-  This function accepts a parity check matrix H and, if it is not
-  already full rank, will determine which rows are dependent and
-  remove them. The updated matrix will be returned.
-  """
   tempArray = H.copy()
   if linalg.matrix_rank(tempArray) == tempArray.shape[0]:
     if verbose:
@@ -263,10 +215,6 @@ def get_full_rank_H_matrix(H, verbose=False):
   tempHarray = newH.copy()
   for index in arange(numColumns):
     newH[:,index] = tempHarray[:,columnOrder[0,index]]
-
-  if verbose:
-    print('original H.shape:', H.shape)
-    print('newH.shape:', newH.shape)
 
   return newH
 
@@ -282,15 +230,8 @@ def encode(msg, G): #function for encoding
   return code
 
 def get_full_rank_H_matrix(H, verbose=False):
-  """
-  This function accepts a parity check matrix H and, if it is not
-  already full rank, will determine which rows are dependent and
-  remove them. The updated matrix will be returned.
-  """
   tempArray = H.copy()
   if linalg.matrix_rank(tempArray) == tempArray.shape[0]:
-    if verbose:
-      print('Returning H; it is already full rank.')
     return tempArray
 
   numRows = tempArray.shape[0]
@@ -307,8 +248,6 @@ def get_full_rank_H_matrix(H, verbose=False):
   rowOrder = arange(numRows).reshape(numRows,1)
 
   while i < limit:
-    if verbose:
-      print('In get_full_rank_H_matrix; i:', i)
       # Flag indicating that the row contains a non-zero entry
     found  = False
     for j in arange(i, numColumns):
@@ -357,15 +296,15 @@ def get_full_rank_H_matrix(H, verbose=False):
   for index in arange(numColumns):
     newH[:,index] = tempHarray[:,columnOrder[0,index]]
 
-  if verbose:
-    print('original H.shape:', H.shape)
-    print('newH.shape:', newH.shape)
-
   return newH
 
-H = pc_matrix()
-G = generator(H)
-code_img = encode(img, G)
-savetxt("../encoded_bits.dat", code_img)
-savetxt("../G.dat", G)
-savetxt("../H.dat", H)
+def main(img):
+  lx, ly = len(img), len(img[0])
+  img = array(img).flatten()
+  size = lx*ly
+  H = pc_matrix()
+  G = generator(H)
+  code_img = encode(img, G)
+  savetxt("./media/data/encoded_bits.dat", code_img)
+  savetxt("./media/data/G.dat", G)
+  savetxt("./media/data/H.dat", H)

@@ -4,11 +4,13 @@
 
 from numpy import *
 import matplotlib.pyplot as plt 
-import random
 from numpy.random import shuffle, randint
 from numpy.linalg import inv, det
 
 img = load('../binary_image.npy')
+plt.imshow(img, 'gray')
+plt.show()
+
 lx, ly = len(img), len(img[0])
 img = array(img).flatten()
 size = lx*ly
@@ -19,12 +21,9 @@ def pc_matrix():
     """
     This function constructs a LDPC parity check matrix
     H. The algorithm follows Gallager's approach where we create
-    p submatrices and stack them together. Reference: Turbo
-    Coding for Satellite and Wireless Communications, section
-    9,3.
+    p submatrices and stack them together.
     Note: the matrices computed from this algorithm will never
-    have full rank. (Reference Gallager's Dissertation.) They
-    will have rank = (number of rows - p + 1). To convert it
+    have full rank.They will have rank = (number of rows - p + 1). To convert it
     to full rank, use the function get_full_rank_H_matrix
     """
 

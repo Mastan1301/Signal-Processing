@@ -7,6 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
     <title>SimuLDPC</title>
     <style>
@@ -19,44 +20,49 @@
             font-weight: bold;
             height: 10%;
         }
+        
+        #loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.794) url(../media/figs/loader.gif) no-repeat center center;
+            z-index: 10000;
+        }
     </style>
 </head>
 
 <body>
     <nav class="navbar">
-        <a class="navbar-brand text">AWGN channel</a>
+        <a class="navbar-brand text" style="font-size: xx-large;">AWGN channel</a>
+        <span class="navbar-text">
+            <a class = "nav-link" href = "/" style = "color: white; font-size: x-large;">Home</a>
+        </span>
     </nav>
     <br><br>
 
-    <form method="POST">
+    <form id="inputForm" method="POST" enctype="multipart/form-data">
         <div class="container">
             {% csrf_token %}
             <div class="row">
                 <div class="col">
-                    <div class="form-group">
-                        <label for="snr" class="col-sm-1 col-form-label" style="font-weight: bold">SNR:</label>
-                        <div class="col-md-10">
-                            <input type="text" class="form-control" name="snr" id="snr" placeholder="Enter an array of SNR values. For eg: [1, 2, 3]">
-                        </div>
-                    </div>
-                    <br> <br>
-                    <div class="form-group col">
-                        <label for="img" style="font-weight: bold">Upload a gray-scale *.png image file: </label>
-                        <div class="col-md-10">
-                            <input type="file" class="form-control-file" name="img" id="img">
-                        </div>
-                    </div>
-                    <br> <br>
-                    <div class="col text-center">
-                        <button type="submit" class="btn btn-primary btn-lg" style="background-color: teal;">Simulate</button>
+                    <div class="col-md-10">
+                        {{form.as_p}}
                     </div>
 
+                    <br><br>
+                    <div class="col text-center">
+                        <button type="submit" id="sim" class="btn btn-primary btn-lg" style="background-color: rgb(0, 90, 90);">Simulate</button>
+                    </div>
                 </div>
 
                 <div class="col">
                     <div class="col-md-10">
                         <div class="card text-center text" style="background-color: black; font-weight: bold">
-                            <img src="../media/figs/awgn_w5Zvil9_dAryJBX.jpg" class="img-fluid float-left" alt="Responsive image">
+                            <img src="../media/figs/input.png" class="img-fluid float-left" alt="Responsive image" width=100%>
                             <div class="card-body">
                                 <p class="card-text">Uploaded Image</p>
                             </div>
@@ -64,6 +70,54 @@
                     </div>
                 </div>
             </div>
+        </div>
     </form>
 
+    <br><br><br>
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div class="col-md-10">
+                    <table class="table table-striped table-dark">
+                        <thead>
+                            <tr>
+                                <th scope="col">SNR</th>
+                                <th scope="col">BER</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for SNR, BER in ber.items %}
+                            <tr>
+                                <td>{{SNR}}</td>
+                                <td>{{BER}}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="col-md-10">
+                    <div class="card text-center text" style="background-color: black; font-weight: bold">
+                        <img src="../media/figs/output.png" id="plot" class="img-fluid float-left" alt="Responsive image">
+                        <div class="card-body">
+                            <p class="card-text">BER v/s SNR plot</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader"></div>
+
+    <script>
+        $('#inputForm').submit(function() {
+            $('#loader').show();
+            return true;
+        });
+    </script>
 </body>
