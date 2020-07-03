@@ -8,7 +8,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    
+
     <title>SimuLDPC</title>
     <link rel="shortcut icon" href="../media/figs/icon.png">
 
@@ -42,6 +42,10 @@
         body {
             background-color: rgba(0, 0, 0, 0.931);
         }
+        
+        footer {
+            z-index: 999;
+        }
         /*         
         .my-row {
             border: 2px solid blue;
@@ -51,7 +55,7 @@
 
 <body>
     <nav class="navbar">
-        <a class="navbar-brand text" style="font-size: xx-large;">AWGN channel</a>
+        <a class="navbar-brand text" style="font-size: xx-large;">BEC channel</a>
         <span class="navbar-text">
             <a class = "nav-link" href = "/" style = "color: white; font-size: x-large;">Home</a>
         </span>
@@ -82,21 +86,21 @@
 
         <div class="row my-row text">
             <div class="col-md-6 my-content rounded" style="background-color: rgba(22, 0, 0, 0.959); text-align: center;">
-            <br>
+                <br>
                 <span style="font-weight: bold;">Results</span>
                 <br>
                 <table class="table table-striped table-dark" style="text-align: center;">
                     <thead>
                         <tr>
-                            <th scope="col ">SNR</th>
+                            <th scope="col ">Bit Erasure probability (p)</th>
                             <th scope="col ">BER</th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        {% for SNR, BER in ber.items %}
+                        {% for P, BER in ber.items %}
                         <tr>
-                            <td>{{SNR}}</td>
+                            <td>{{P}}</td>
                             <td>{{BER}}</td>
                         </tr>
                         {% endfor %}
@@ -106,7 +110,7 @@
             </div>
 
             <div class="col-md-6 my-content rounded" style="background-color: rgba(0, 0, 0, 0.904);">
-            <br>
+                <br>
                 <div class="card text-center " style="background-color: black; font-weight: bold;">
                     <img src="../media/figs/output.png " id="plot " class="img-fluid float-left " alt="Responsive image " width=100%>
                     <div class="card-body ">
@@ -118,9 +122,9 @@
         </div>
     </div>
 
-    {%include "main/includes/footer.html"%}
-
     <div id="loader"></div>
+
+    {%include "main/includes/footer.html"%}
 
     <script>
         $('#inputForm').submit(function() {

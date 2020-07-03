@@ -2,9 +2,11 @@
     {% load static %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
     <title>SimuLDPC</title>
     <style>
-        .text{
+        .text {
             color: white;
         }
     </style>
@@ -14,31 +16,33 @@
 
     <nav>
         <div class="nav-wrapper black">
-            <a href="/" class="brand-logo center" style = "font-weight: bold">SimuLDPC</a>
+            <a href="/" class="brand-logo center" style="font-weight: bold">SimuLDPC</a>
         </div>
     </nav>
     <br><br>
     <div class="container">
         <div class="row">
             {% for ch in channels %}
-                <div class="col s12 m7 l4">
-                    <a href = {{ch.channel_slug}}>
+            <div class="col s12 m7 l4">
+                <a href={{ch.channel_slug}}>
                     <div class="card hoverable grey darken-4">
                         <div class="card-image">
-                        <img src={{ch.channel_img.url}} height = "40%">
-                        <span class="card-title text" style = "background-color: black; font-weight: bold">{{ch.channel_type}}</span>
+                            <img src={{ch.channel_img.url}} height="40%">
+                            <span class="card-title text" style="background-color: black; font-weight: bold">{{ch.channel_type}}</span>
+                        </div>
+                        <div class="card-content text">
+                            <p>{{ch.channel_summary}}</p>
+                        </div>
+                        <div class="card-action center">
+                            <a class="waves-effect hoverable waves-light btn" href={{ch.channel_slug}}><span class = "text">GO</span></a>
+                        </div>
                     </div>
-                    <div class="card-content text">
-                        <p>{{ch.channel_summary}}</p>
-                    </div>
-            <div class="card-action center">
-            <a class="waves-effect hoverable waves-light btn" href = {{ch.channel_slug}}><span class = "text">GO</span></a>
+                </a>
             </div>
-      </div>
-      </a>
-    </div>
             {% endfor %}
         </div>
     </div>
+
+    {%include "main/includes/footer.html"%}
 
 </body>

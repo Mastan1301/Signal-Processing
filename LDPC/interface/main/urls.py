@@ -25,6 +25,8 @@ app_name = "main"
 urlpatterns = [
     path('', views.homepage, name = "homepage"),
     path('awgn/', views.awgn, name = "awgn"),
+    path('bsc/', views.bsc, name = "bsc"),
+    path('bec/', views.bec, name = "bec"),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
