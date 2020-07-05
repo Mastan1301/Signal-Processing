@@ -1,2 +1,2 @@
 # Signal-Processing
-This repository will consist of programs which are based on signal processing.
+This repository consists of simulations of channel coding and modulation.
